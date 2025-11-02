@@ -1,16 +1,94 @@
 import matplotlib.pyplot as plt
+import math
 
 
-def fare_price(distance, different_regions, hubs_in_dest_region):
-    raise NotImplementedError
+def fare_price(
+    distance: float, different_regions: bool, hubs_in_dest_region: int
+) -> float:
+    """Returns the fare price for a direct leg.
+
+    Args:
+        distance(float) : distance between the start and destination,
+        different_regions(bool) : True if the start and destination are in different regions,
+        hubs_in_dest_region(int) : Number of hubs in the destination region.
+
+    Returns:
+        float : Fare price for the journey.
+    """
+
+    price = 1 + distance * math.exp(-distance / 100) * (
+        1 + (different_regions * hubs_in_dest_region) / 10
+    )
+    return price
 
 
 class Station:
+    """Class for Station"""
+
+    def __init__(
+        self, name: str, region: str, crs: str, lat: float, lon: float, hub: bool
+    ):
+        self.name = name
+        self.region = region
+        self.crs = crs
+        self.lat = lat
+        self.lon = lon
+        self.hub = hub
+
+    def __post_init__(self):
+        if not isinstance(self.name, str):
+            raise ValueError(f"'name' must be a str, was {self.name}")
+
+        if not isinstance(self.region, str):
+            raise ValueError(f"'region' must be a str, was {self.region}")
+
+        if not isinstance(self.crs, str):
+            raise ValueError(f"'crs' must be a str, was {self.crs}")
+
+        if not isinstance(self.lat, float):
+            raise ValueError(f"'lat' must be a float, was {self.lat}")
+
+        if not isinstance(self.lon, float):
+            raise ValueError(f"'lon' must be a float, was {self.lon}")
+
+        if not isinstance(self.hub, bool):
+            raise ValueError(f"'hub' must be a bool, was {self.hub}")
+
+        # check longitude and latitude
+        if not (-90 <= self.lat <= 90):
+            raise ValueError(
+                f"'lat' must be between -90 and 90 degrees, it was {self.lat}"
+            )
+
+        if not (-180 <= self.lon <= 180):
+            raise ValueError(
+                f"'lon' must be between -180 and 180 degrees, it was {self.lon}"
+            )
+
+        # validate CRS
+        if len(self.crs != 3) or not self.crs.isupper():
+            raise ValueError(f"'crs' must be 3 capital letters, it was {self.crs}")
+
     def distance_to(self):
         raise NotImplementedError
 
 
 class RailNetwork:
+    """Class for Rail Network"""
+
+    def __init__(self, stations: list):
+        self.stations = stations
+
+    def __post_init__(self):
+        seen = set()
+        # Checking for duplicate crs
+        for station in self.stations:
+            if station.crs in seen:
+                raise ValueError(
+                    f"CRS should be unique in a rail network, {station.crs} was duplicated"
+                )
+            seen.add(station.crs)
+
     def regions(self):
         raise NotImplementedError
 
