@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import math
+from dataclasses import dataclass
 
 
 def fare_price(
@@ -8,9 +9,9 @@ def fare_price(
     """Returns the fare price for a direct leg.
 
     Args:
-        distance(float) : distance between the start and destination,
-        different_regions(bool) : True if the start and destination are in different regions,
-        hubs_in_dest_region(int) : Number of hubs in the destination region.
+        distance(float) : distance between the start and destination
+        different_regions(bool) : True if the start and destination are in different regions
+        hubs_in_dest_region(int) : Number of hubs in the destination region
 
     Returns:
         float : Fare price for the journey.
@@ -22,20 +23,19 @@ def fare_price(
     return price
 
 
+@dataclass
 class Station:
     """Class for Station"""
 
-    def __init__(
-        self, name: str, region: str, crs: str, lat: float, lon: float, hub: bool
-    ):
-        self.name = name
-        self.region = region
-        self.crs = crs
-        self.lat = lat
-        self.lon = lon
-        self.hub = hub
+    name: str
+    region: str
+    crs: str
+    lat: float
+    lon: float
+    hub: bool
 
     def __post_init__(self):
+        # print("DEBUG: post_init called with types:")
         if not isinstance(self.name, str):
             raise ValueError(f"'name' must be a str, was {self.name}")
 
@@ -66,28 +66,32 @@ class Station:
             )
 
         # validate CRS
-        if len(self.crs != 3) or not self.crs.isupper():
+        if len(self.crs) != 3 or not self.crs.isupper():
             raise ValueError(f"'crs' must be 3 capital letters, it was {self.crs}")
 
     def distance_to(self):
         raise NotImplementedError
 
 
+@dataclass
 class RailNetwork:
     """Class for Rail Network"""
 
-    def __init__(self, stations: list):
-        self.stations = stations
-
-    def __post_init__(self):
+    def __init__(self, list_of_stations: list):
+        stations = {}
         seen = set()
-        # Checking for duplicate crs
-        for station in self.stations:
+
+        for station in list_of_stations:
+            # Checking for duplicate crs
             if station.crs in seen:
                 raise ValueError(
                     f"CRS should be unique in a rail network, {station.crs} was duplicated"
                 )
             seen.add(station.crs)
+
+            stations[station.crs] = station
+
+        self.stations = stations
 
     def regions(self):
         raise NotImplementedError
